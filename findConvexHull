@@ -1,0 +1,62 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <ctime>
+using namespace std;
+
+struct Point { // представление точки с координатами 
+    int x, y;
+};
+
+int orientation(Point p, Point q, Point r) { 
+    int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+    if (val == 0) return 0;
+    return (val > 0) ? 1 : 2;   // 0 если коллиниарны, 1 если поворот по часовой, 2 если против часовой
+}
+
+void findConvexHull(vector<Point>& points) {    // функция поиска выпуклой оболочки
+    int n = points.size();  // принимает на выход массив данных точеек
+    if (n < 3) return;  // если их колличество меньше 3 завершает работу
+
+    vector<Point> hull;     // Создаем пустой множество для ответа - выпуклой оболочки hull
+
+    int l = 0;
+    for (int i = 1; i < n; i++)
+        if (points[i].x < points[l].x)  // выбор самой левой точки l
+            l = i;
+
+    int p = l, q;
+    do {    // поиск точек выпуклой оболочки
+        hull.push_back(points[p]);
+        q = (p + 1) % n;
+        for (int i = 0; i < n; i++) {
+            if (orientation(points[p], points[i], points[q]) == 2)
+                q = i;
+        }
+        p = q;
+    } while (p != l);
+
+    for (Point p : hull) {
+        cout << "(" << p.x << ", " << p.y << ") ";
+    }
+    cout << endl;
+}
+
+int main() {
+    vector<Point> points;
+    ifstream file("points.txt");
+    int n;
+    file >> n;
+    for (int i = 0; i < n; i++) {
+        int x, y;
+        file >> x >> y;
+        points.push_back({ x, y });
+    }
+    file.close();
+    int start_time = clock();
+    findConvexHull(points);
+    int end_time = clock();
+    int search_time = end_time - start_time;
+    cout << search_time;
+    return 0;
+}
