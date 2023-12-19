@@ -81,12 +81,79 @@ def receive_message():
         chat_text.config(state=tk.DISABLED)
         chat_text.see(tk.END)
 
+# Функция для входа в чат
+def login():
+    # Получаем логин и пароль из полей ввода
+    login = login_login_entry.get()
+    password = login_password_entry.get()
+    # Проверяем, что логин и пароль не пустые
+    if login and password:
+        # Пытаемся подключиться к серверу
+        try:
+            # Отправляем логин и пароль на сервер
+            client_socket.send(f"{login} {password}".encode())
+            # Получаем ответ от сервера
+            response = client_socket.recv(1024).decode()
+            # Если ответ положительный, то переходим к окну чата
+            if response == "OK":
+                # Скрываем виджеты для окна входа и регистрации
+                for widget in top_frame.winfo_children():
+                    widget.grid_remove()
+                # Запускаем поток для получения сообщения с сервера
+                threading.Thread(target=receive_message, daemon=True).start()
+            # Иначе выводим сообщение об ошибке
+            else:
+                tk.messagebox.showerror("Ошибка", response)
+        # Если не удалось подключиться к серверу, то выводим сообщение об ошибке
+        except:
+            tk.messagebox.showerror("Ошибка", "Не удалось подключиться к серверу")
+    # Если логин или пароль пустые, то выводим сообщение об ошибке
+    else:
+        tk.messagebox.showerror("Ошибка", "Логин и пароль не могут быть пустыми")
+
+# Функция для регистрации в чате
+def register():
+    # Получаем логин, пароль и подтверждение пароля из полей ввода
+    login = reg_login_entry.get()
+    password = reg_password_entry.get()
+    confirm = reg_password_entry.get()
+    # Проверяем, что логин, пароль и подтверждение пароля не пустые
+    if login and password and confirm:
+        # Проверяем, что пароль и подтверждение пароля совпадают
+        if password == confirm:
+            # Пытаемся подключиться к серверу
+            try:
+                # Отправляем логин, пароль и флаг регистрации на сервер
+                client_socket.send(f"{login} {password} register".encode())
+                # Получаем ответ от сервера
+                response = client_socket.recv(1024).decode()
+                # Если ответ положительный, то переходим к окну чата
+                if response == "OK":
+                    # Скрываем виджеты для окна входа и регистрации
+                    for widget in top_frame.winfo_children():
+                        widget.grid_remove()
+                    # Запускаем поток для получения сообщения с сервера
+                    threading.Thread(target=receive_message, daemon=True).start()
+                # Иначе выводим сообщение об ошибке
+                else:
+                    tk.messagebox.showerror("Ошибка", response)
+            # Если не удалось подключиться к серверу, то выводим сообщение об ошибке
+            except:
+                tk.messagebox.showerror("Ошибка", "Не удалось подключиться к серверу")
+        # Если пароль и подтверждение пароля не совпадают, то выводим сообщение об ошибке
+        else:
+            tk.messagebox.showerror("Ошибка", "Пароль и подтверждение пароля не совпадают")
+    # Если логин, пароль или подтверждение пароля пустые, то выводим сообщение об ошибке
+    else:
+        tk.messagebox.showerror("Ошибка", "Логин, пароль и подтверждение пароля не могут быть пустыми")
+
 # Привязываем функцию отправки сообщения к кнопке и клавише Enter
 chat_button.config(command=send_message)
 chat_entry.bind("<Return>", lambda event: send_message())
 
-# Запускаем поток для получения сообщения с сервера
-threading.Thread(target=receive_message, daemon=True).start()
+# Привязываем функции входа и регистрации к кнопкам
+login_button.config(command=login)
+reg_button.config(command=register)
 
 # Запускаем главный цикл приложения
 root.mainloop()
