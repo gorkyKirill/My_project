@@ -1,0 +1,92 @@
+# Импортируем необходимые модули
+import tkinter as tk
+import socket
+import threading
+
+# Создаем главное окно приложения
+root = tk.Tk()
+root.title("Мессенджер на Python")
+root.geometry("600x400")
+
+# Создаем фреймы для размещения элементов
+top_frame = tk.Frame(root)
+top_frame.pack(side=tk.TOP, fill=tk.X)
+middle_frame = tk.Frame(root)
+middle_frame.pack(expand=True, fill=tk.BOTH)
+bottom_frame = tk.Frame(root)
+bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+# Создаем виджеты для окна регистрации
+reg_label = tk.Label(top_frame, text="Регистрация", font=("Arial", 16))
+reg_login_label = tk.Label(top_frame, text="Логин:")
+reg_login_entry = tk.Entry(top_frame)
+reg_password_label = tk.Label(top_frame, text="Пароль:")
+reg_password_entry = tk.Entry(top_frame, show="*")
+reg_button = tk.Button(top_frame, text="Зарегистрироваться")
+
+# Размещаем виджеты для окна регистрации
+reg_label.grid(row=0, column=0, columnspan=2, pady=10)
+reg_login_label.grid(row=1, column=0, sticky=tk.E, padx=5, pady=5)
+reg_login_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+reg_password_label.grid(row=2, column=0, sticky=tk.E, padx=5, pady=5)
+reg_password_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
+reg_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+# Создаем виджеты для окна входа
+login_label = tk.Label(top_frame, text="Вход", font=("Arial", 16))
+login_login_label = tk.Label(top_frame, text="Логин:")
+login_login_entry = tk.Entry(top_frame)
+login_password_label = tk.Label(top_frame, text="Пароль:")
+login_password_entry = tk.Entry(top_frame, show="*")
+login_button = tk.Button(top_frame, text="Войти")
+
+# Размещаем виджеты для окна входа
+login_label.grid(row=0, column=2, columnspan=2, pady=10)
+login_login_label.grid(row=1, column=2, sticky=tk.E, padx=5, pady=5)
+login_login_entry.grid(row=1, column=3, sticky=tk.W, padx=5, pady=5)
+login_password_label.grid(row=2, column=2, sticky=tk.E, padx=5, pady=5)
+login_password_entry.grid(row=2, column=3, sticky=tk.W, padx=5, pady=5)
+login_button.grid(row=3, column=2, columnspan=2, pady=10)
+
+# Создаем виджеты для окна чата
+chat_text = tk.Text(middle_frame)
+chat_text.config(state=tk.DISABLED)
+chat_scroll = tk.Scrollbar(middle_frame, command=chat_text.yview)
+chat_text.config(yscrollcommand=chat_scroll.set)
+chat_entry = tk.Entry(bottom_frame)
+chat_button = tk.Button(bottom_frame, text="Отправить")
+
+# Размещаем виджеты для окна чата
+chat_text.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+chat_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+chat_entry.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=10, pady=10)
+chat_button.pack(side=tk.RIGHT, padx=10, pady=10)
+
+# Создаем сокет для подключения к серверу
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect(("localhost", 1234))
+
+# Функция для отправки сообщения на сервер
+def send_message():
+    message = chat_entry.get()
+    chat_entry.delete(0, tk.END)
+    client_socket.send(message.encode())
+
+# Функция для получения сообщения с сервера
+def receive_message():
+    while True:
+        message = client_socket.recv(1024).decode()
+        chat_text.config(state=tk.NORMAL)
+        chat_text.insert(tk.END, message + "\n")
+        chat_text.config(state=tk.DISABLED)
+        chat_text.see(tk.END)
+
+# Привязываем функцию отправки сообщения к кнопке и клавише Enter
+chat_button.config(command=send_message)
+chat_entry.bind("<Return>", lambda event: send_message())
+
+# Запускаем поток для получения сообщения с сервера
+threading.Thread(target=receive_message, daemon=True).start()
+
+# Запускаем главный цикл приложения
+root.mainloop()
