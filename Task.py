@@ -18,9 +18,9 @@ def find_expression_manually():
     digits = list(range(9, 0, -1))
     operators = ['+', '-', '']
     expressions_dict = generate_combinations(digits, operators)
-
+    
     return expressions_dict
-
+#Время работы и выхов функции создания словаря
 start = time.time()
 expression_dict = find_expression_manually()
 end = time.time() - start
